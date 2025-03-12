@@ -25,6 +25,13 @@ linux_image := $(linux_builddir)/arch/riscv/boot/Image
 # FDT Variables
 dtb_file := $(linux_builddir)/arch/riscv/boot/dts/bosc/kmh-v2-$(NCORE)core.dtb
 
+# OpenSBI Variables
+opensbi_srcdir := $(CURRENT_DIR)/opensbi
+opensbi_builddir := $(BUILD_DIR)/opensbi
+opensbi_bindir := $(opensbi_builddir)/platform/generic/firmware
+opensbi_payload_bin := $(opensbi_bindir)/fw_payload.bin
+opensbi_payload_elf := $(opensbi_bindir)/fw_payload.elf
+
 ###########
 # qemu
 ###########
@@ -51,10 +58,24 @@ $(linux_builddir)/.config:
 	ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) \
 	defconfig xiangshan.config
 
+###########
+# opensbi
+###########
+.PHONY: opensbi
+opensbi: $(dtb_file) $(linux_image)
+	mkdir -p $(opensbi_builddir)
+	$(MAKE) -C $(opensbi_srcdir) O=$(opensbi_builddir) -j $(NPROC) \
+	CROSS_COMPILE=$(CROSS_COMPILE) \
+	PLATFORM=generic \
+	FW_TEXT_START=0x80000000 \
+	FW_FDT_PATH=$(dtb_file) \
+	FW_PAYLOAD_PATH=$(linux_image) \
+	FW_PAYLOAD_OFFSET=0x400000
+
 ##########
 # clean
 ##########
-.PHONY: qemu-clean qemu-distclean linux-clean linux-distclean
+.PHONY: qemu-clean qemu-distclean linux-clean linux-distclean opensbi-clean
 qemu-clean:
 	$(MAKE) -C $(qemu_builddir) clean
 
@@ -66,3 +87,6 @@ linux-clean:
 
 linux-distclean:
 	rm -rf $(linux_builddir)
+
+opensbi-clean:
+	rm -rf $(opensbi_builddir)
