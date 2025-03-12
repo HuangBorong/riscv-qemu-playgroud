@@ -16,6 +16,12 @@ qemu_args := -cpu xiangshan-kunminghu \
 			 -m 4G \
 			 -smp $(NCORE)
 
+# Linux Variables
+linux_srcdir := $(CURRENT_DIR)/linux
+linux_builddir := $(BUILD_DIR)/linux
+linux_vmlinux := $(linux_builddir)/vmlinux
+linux_image := $(linux_builddir)/arch/riscv/boot/Image
+
 ###########
 # qemu
 ###########
@@ -28,12 +34,32 @@ $(qemu_builddir)/config-host.mak:
 	cd $(qemu_builddir) && \
 		$(qemu_srcdir)/configure $(qemu_config_args)
 
+###########
+# linux
+###########
+.PHONY: linux
+linux: $(linux_builddir)/.config
+	$(MAKE) -C $(linux_srcdir) O=$(linux_builddir) -j $(NPROC) \
+	ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) \
+
+$(linux_builddir)/.config:
+	mkdir -p $(dir $@)
+	$(MAKE) -C $(linux_srcdir) O=$(linux_builddir) -j $(NPROC) \
+	ARCH=riscv CROSS_COMPILE=$(CROSS_COMPILE) \
+	defconfig xiangshan.config
+
 ##########
 # clean
 ##########
-.PHONY: qemu-clean qemu-distclean
+.PHONY: qemu-clean qemu-distclean linux-clean linux-distclean
 qemu-clean:
 	$(MAKE) -C $(qemu_builddir) clean
 
 qemu-distclean:
 	rm -rf $(qemu_builddir)
+
+linux-clean:
+	$(MAKE) -C $(linux_builddir) clean
+
+linux-distclean:
+	rm -rf $(linux_builddir)
