@@ -8,3 +8,6 @@ build/
 
 # IDE/Editor files  
 .vscode/
+
+# Log files
+guest_log.txt

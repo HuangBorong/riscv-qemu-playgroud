@@ -73,6 +73,27 @@ opensbi: $(dtb_file) $(linux_image)
 	FW_PAYLOAD_OFFSET=0x400000
 
 ##########
+# run
+##########
+.PHONY: run
+run: $(qemu_target) $(opensbi_payload_bin)
+	$(qemu_target) $(qemu_machine) $(qemu_args) \
+	-d guest_errors -D guest_log.txt \
+	-bios $(opensbi_payload_bin) \
+	-nographic
+
+##########
+# debug
+##########
+.PHONY: debug
+debug: $(qemu_target) $(opensbi_payload_elf)
+	$(qemu_target) $(qemu_machine) $(qemu_args) \
+	-d guest_errors -D guest_log.txt \
+	-bios $(opensbi_payload_elf) \
+	-nographic \
+	-s -S
+
+##########
 # clean
 ##########
 .PHONY: qemu-clean qemu-distclean linux-clean linux-distclean opensbi-clean
