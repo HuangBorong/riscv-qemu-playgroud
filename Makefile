@@ -22,6 +22,9 @@ linux_builddir := $(BUILD_DIR)/linux
 linux_vmlinux := $(linux_builddir)/vmlinux
 linux_image := $(linux_builddir)/arch/riscv/boot/Image
 
+# FDT Variables
+dtb_file := $(linux_builddir)/arch/riscv/boot/dts/bosc/kmh-v2-$(NCORE)core.dtb
+
 ###########
 # qemu
 ###########
